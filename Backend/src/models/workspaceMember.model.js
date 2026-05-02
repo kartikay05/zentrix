@@ -141,6 +141,6 @@ workspaceMemberSchema.methods.changeRole = function (newRole) {
   return this.save();
 };
 
-const WorkspaceMember = mongoose.model("WorkspaceMember", workspaceMemberSchema);
+const workspaceMemberModel = mongoose.model("WorkspaceMember", workspaceMemberSchema);
 
-export default WorkspaceMember;
+export default workspaceMemberModel;

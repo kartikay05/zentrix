@@ -96,15 +96,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-/**
- * Return a safe user object (no password, no sensitive tokens).
- */
-userSchema.methods.toSafeObject = function () {
-  const { password, verificationToken, resetPasswordToken, resetPasswordExpires, ...safe } =
-    this.toObject();
-  return safe;
-};
+const userModel = mongoose.model("User", userSchema);
 
-const User = mongoose.model("User", userSchema);
-
-export default User;
+export default userModel;

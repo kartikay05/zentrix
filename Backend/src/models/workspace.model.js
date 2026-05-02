@@ -139,6 +139,6 @@ workspaceSchema.methods.regenerateApiKey = function () {
   return this.save();
 };
 
-const Workspace = mongoose.model("Workspace", workspaceSchema);
+const workspaceModel = mongoose.model("Workspace", workspaceSchema);
 
-export default Workspace;
+export default workspaceModel;
