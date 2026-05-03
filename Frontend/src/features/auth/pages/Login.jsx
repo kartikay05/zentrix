@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import AuthLayout from '../components/AuthLayout';
 import { useAuth } from '../hook/useAuth';
 
 export default function Login() {
@@ -39,7 +38,6 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout>
     <div className="min-h-screen bg-[#030712] flex items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Deep Space Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] pointer-events-none" />
@@ -172,6 +170,5 @@ export default function Login() {
         </div>
       </div>
     </div>
-    </AuthLayout>
   );
 }

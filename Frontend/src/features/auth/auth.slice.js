@@ -5,6 +5,7 @@ const authSlice = createSlice({
     initialState: {
         user: null,
         loading: false,
+        isInitialized: false, // true once the initial /get-me session check is done
         error: null,
     },
     reducers: {
@@ -16,9 +17,12 @@ const authSlice = createSlice({
         },
         setError: (state, action) => {
             state.error = action.payload;
-        }
+        },
+        setInitialized: (state) => {
+            state.isInitialized = true;
+        },
     }
 });
 
-export const { setUser, setLoading, setError } = authSlice.actions;
+export const { setUser, setLoading, setError, setInitialized } = authSlice.actions;
 export default authSlice.reducer;
