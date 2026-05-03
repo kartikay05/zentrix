@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { Navigate } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 
 // Full-page loading screen shown during initial session check
 function SessionLoader() {
@@ -37,5 +37,5 @@ export default function ProtectedRoute({ children }) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return children ? children : <Outlet />;
 }

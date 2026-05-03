@@ -42,7 +42,7 @@ export default function Register() {
     
     const result = await handleRegister(formData);
     if (result.success) {
-      navigate('/login');
+      navigate('/dashboard');
     }
   };
 

@@ -1,30 +1,30 @@
 import { createBrowserRouter } from "react-router";
 import App from "./App";
+import ProtectedRoute from "../router/ProtectedRoute";
+import DashboardHome from "../features/dashboard/pages/DashboardHome";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
-import DashboardHome from "../features/dashboard/pages/DashboardHome";
-import ProtectedRoute from "../router/ProtectedRoute";
+import LandingPage from "../features/landing/pages/LandingPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />, // Root: restores session on every load
+    element: <App />,
     children: [
       {
         index: true,
-        element: (
-          <ProtectedRoute>
-            <DashboardHome />
-          </ProtectedRoute>
-        ),
+        element: <LandingPage />, // Public marketing page at root
       },
       {
         path: "dashboard",
-        element: (
-          <ProtectedRoute>
-            <DashboardHome />
-          </ProtectedRoute>
-        ),
+        element: <ProtectedRoute />, // Protects all dashboard routes
+        children: [
+          {
+            index: true,
+            element: <DashboardHome />,
+          },
+          // Future dashboard routes like /dashboard/incidents go here
+        ],
       },
       {
         path: "login",

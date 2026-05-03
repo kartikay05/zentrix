@@ -33,7 +33,7 @@ export default function Login() {
     
     const result = await handleLogin(formData);
     if (result.success) {
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 
