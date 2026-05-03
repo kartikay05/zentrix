@@ -1,144 +1,162 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 
-/**
- * Workspace Schema
- * A workspace is the top-level organisational unit on the Zentrix platform.
- * Each workspace corresponds to one organisation / project team and holds
- * the configuration needed for AI-driven incident response (API keys,
- * GitHub integration, etc.).
- */
 const workspaceSchema = new mongoose.Schema(
   {
-    // Organisation / company name
     orgName: {
       type: String,
-      required: [true, "Organisation name is required"],
+      required: true,
       trim: true,
-      minlength: [2, "Organisation name must be at least 2 characters"],
-      maxlength: [150, "Organisation name cannot exceed 150 characters"],
+      minlength: 2,
+      maxlength: 150,
     },
 
-    // Internal project name within the organisation
     projectName: {
       type: String,
-      required: [true, "Project name is required"],
+      required: true,
       trim: true,
-      minlength: [2, "Project name must be at least 2 characters"],
-      maxlength: [150, "Project name cannot exceed 150 characters"],
+      minlength: 2,
+      maxlength: 150,
     },
 
-    // Unique slug used in URLs / API paths  (e.g. "acme-corp-ops")
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
       trim: true,
+      unique: true,
+      index: true,
     },
 
-    // API key for integrating external services (alerts, monitoring tools, etc.)
+    // 🔐 Store hashed API key (not raw)
     apiKey: {
       type: String,
-      unique: true,
-      select: false, // Hidden from general queries for security
+      select: false,
     },
 
-    // Contact / notification email for the workspace
     email: {
       type: String,
-      required: [true, "Workspace contact email is required"],
+      required: true,
       lowercase: true,
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
+      index: true,
+      match: /^\S+@\S+\.\S+$/,
     },
 
-    // GitHub repository URL for automated incident linking / PR analysis
     githubRepo: {
       type: String,
       trim: true,
       default: null,
-      match: [
-        /^https:\/\/github\.com\/.+\/.+$/,
-        "Please provide a valid GitHub repository URL",
-      ],
+      match: /^https:\/\/github\.com\/[^/]+\/[^/]+$/,
     },
 
-    // Who created (owns) this workspace — references the User collection
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
-    // Optional description / mission statement for the workspace
     description: {
       type: String,
       trim: true,
-      maxlength: [500, "Description cannot exceed 500 characters"],
+      maxlength: 500,
       default: null,
     },
 
-    // Whether the workspace is active or has been soft-deleted
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
     },
 
-    // AI-specific settings for incident response behaviour
     aiSettings: {
-      // Sensitivity level of AI alerting (low / medium / high / critical)
       alertSensitivity: {
         type: String,
         enum: ["low", "medium", "high", "critical"],
         default: "medium",
       },
-      // Automatic resolution enabled?
       autoResolve: {
         type: Boolean,
         default: false,
       },
-      // Maximum incidents the AI will auto-resolve per day
       autoResolveLimit: {
         type: Number,
         default: 10,
+        min: 1,
+        max: 1000,
       },
     },
   },
   {
-    timestamps: true, // createdAt, updatedAt
+    timestamps: true,
     versionKey: false,
   }
 );
 
-// ── Indexes ─────────────────────────────────────────────────────────────────
-workspaceSchema.index({ slug: 1 });
-workspaceSchema.index({ createdBy: 1 });
-workspaceSchema.index({ orgName: "text", projectName: "text" }); // Full-text search
 
-// ── Pre-validate hook: auto-generate slug & apiKey ──────────────────────────
-workspaceSchema.pre("validate", function (next) {
-  // Generate URL-safe slug from orgName + projectName if not provided
-  if (!this.slug && this.orgName && this.projectName) {
-    this.slug = `${this.orgName}-${this.projectName}`
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
+// ── Indexes ─────────────────────────────
+workspaceSchema.index({ orgName: "text", projectName: "text" });
+
+
+// ── Utility: Slug Generator ─────────────
+function generateSlug(org, project) {
+  return `${org}-${project}`
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+
+// ── Pre-save Hook ───────────────────────
+workspaceSchema.pre("save", async function (next) {
+  // 🔹 Generate unique slug
+  if (!this.slug) {
+    let baseSlug = generateSlug(this.orgName, this.projectName);
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (await mongoose.models.Workspace.exists({ slug })) {
+      slug = `${baseSlug}-${counter++}`;
+    }
+
+    this.slug = slug;
   }
 
-  // Auto-generate a secure API key if not already set
+  // 🔹 Generate & hash API key
   if (!this.apiKey) {
-    this.apiKey = `zx_${crypto.randomBytes(32).toString("hex")}`;
+    const rawKey = `zx_${crypto.randomBytes(32).toString("hex")}`;
+
+    this._apiKey = rawKey; // temporary (send once to user)
+
+    this.apiKey = crypto
+      .createHash("sha256")
+      .update(rawKey)
+      .digest("hex");
   }
 
-  next();
 });
 
-// ── Instance Method: regenerate API key ──────────────────────────────────────
-workspaceSchema.methods.regenerateApiKey = function () {
-  this.apiKey = `zx_${crypto.randomBytes(32).toString("hex")}`;
-  return this.save();
+
+// ── Method: Validate API key ────────────
+workspaceSchema.methods.validateApiKey = function (key) {
+  const hashed = crypto.createHash("sha256").update(key).digest("hex");
+  return this.apiKey === hashed;
 };
 
-const workspaceModel = mongoose.model("Workspace", workspaceSchema);
 
-export default workspaceModel;
+// ── Method: Regenerate API key ─────────
+workspaceSchema.methods.regenerateApiKey = async function () {
+  const rawKey = `zx_${crypto.randomBytes(32).toString("hex")}`;
+
+  this.apiKey = crypto
+    .createHash("sha256")
+    .update(rawKey)
+    .digest("hex");
+
+  await this.save();
+
+  return rawKey; // return only once
+};
+
+
+export default mongoose.model("Workspace", workspaceSchema);

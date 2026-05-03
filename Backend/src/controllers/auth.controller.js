@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
 
 // Generate JWT token
-const generateToken = (userId) => {
-    return jwt.sign({ userId }, config.JWT_SECRET || "fallback_secret", {
+const generateToken = (userId, email) => {
+    return jwt.sign({ userId, email }, config.JWT_SECRET || "fallback_secret", {
         expiresIn: "7d",
     });
 };
@@ -61,7 +61,7 @@ export const register = async (req, res) => {
         // Create new user
         const user = await userModel.create({ name, email, password });
 
-        const token = generateToken(user._id);
+        const token = generateToken(user._id, user.email);
 
         return res.status(201).cookie("token", token, {
             httpOnly: true,
@@ -121,7 +121,7 @@ export const login = async (req, res) => {
         user.lastLoginAt = new Date();
         await user.save({ validateBeforeSave: false });
 
-        const token = generateToken(user._id);
+        const token = generateToken(user._id, user.email);
 
         return res.status(200).cookie("token", token, {
             httpOnly: true,
