@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import morgan from "morgan";
 import authRouter from "./routes/auth.routes.js";
+import workspaceRouter from "./routes/workspace.routes.js";
 import cors from "cors";
 
 const app = express();
@@ -27,5 +28,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/workspace", workspaceRouter);
 
 export default app;
