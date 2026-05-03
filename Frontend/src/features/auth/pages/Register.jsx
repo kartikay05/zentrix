@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { useAuth } from '../hook/useAuth';
 
 export default function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const { handleRegister, loading: isLoading, error: apiError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
-    setApiError('');
   };
 
   const validateForm = () => {
@@ -39,25 +38,11 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiError('');
     if (!validateForm()) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        if (data.errors && data.errors.length > 0) throw new Error(data.errors[0].msg);
-        throw new Error(data.message || 'Registration failed');
-      }
+    
+    const result = await handleRegister(formData);
+    if (result.success) {
       navigate('/login');
-    } catch (err) {
-      setApiError(err.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 

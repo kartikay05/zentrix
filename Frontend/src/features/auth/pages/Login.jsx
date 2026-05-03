@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import AuthLayout from '../components/AuthLayout';
+import { useAuth } from '../hook/useAuth';
 
 export default function Login() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const { handleLogin, loading: isLoading, error: apiError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
-    setApiError('');
   };
 
   const validateForm = () => {
@@ -30,26 +30,16 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setApiError('');
     if (!validateForm()) return;
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Login failed');
+    
+    const result = await handleLogin(formData);
+    if (result.success) {
       navigate('/');
-    } catch (err) {
-      setApiError(err.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
+    <AuthLayout>
     <div className="min-h-screen bg-[#030712] flex items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Deep Space Background Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/20 blur-[120px] pointer-events-none" />
@@ -182,5 +172,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </AuthLayout>
   );
 }
