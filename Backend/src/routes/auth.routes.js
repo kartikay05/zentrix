@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/auth.controller.js";
-import { registerValidator } from "../validators/auth.validator.js";
+import { register, login, logout, getMe } from "../controllers/auth.controller.js";
+import { isAuthenticated } from "../middlewares/auth.middleware.js";
 
 const authRouter = Router();
 
-authRouter.post("/register", registerValidator, registerUser);
+// auth routes
+authRouter.post('/register', register);
+authRouter.post('/login', login);
+authRouter.post('/logout', logout);
+authRouter.get('/get-me', isAuthenticated, getMe);
 
-export default authRouter;
+export default authRouter;  

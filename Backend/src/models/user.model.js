@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
 
     avatar: {
       type: String,
-      default: null, // URL to profile picture
+      default: 'https://ik.imagekit.io/krt/Instagram/Posts/post_d_nK6G8hlJ?updatedAt=1771481893243', // URL to profile picture
     },
 
     isVerified: {
@@ -63,27 +63,15 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt automatically
+    timestamps: true,
     versionKey: false,
   }
 );
 
-// ── Indexes ─────────────────────────────────────────────────────────────────
-userSchema.index({ email: 1 });
-
-// ── Pre-save hook: hash password before saving ───────────────────────────────
-userSchema.pre("save", async function (next) {
-  // Only hash if the password field was modified
-  if (!this.isModified("password")) return next();
-
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
-});
+userSchema.pre('save', async function () {
+    if(!this.isModified('password')) return;
+    this.password = await bcrypt.hash(this.password, 10)
+} )
 
 // ── Instance Methods ─────────────────────────────────────────────────────────
 
@@ -94,6 +82,15 @@ userSchema.pre("save", async function (next) {
  */
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
+};
+
+/**
+ * Return a safe user object (no password, no sensitive tokens).
+ */
+userSchema.methods.toSafeObject = function () {
+  const { password, verificationToken, resetPasswordToken, resetPasswordExpires, ...safe } =
+    this.toObject();
+  return safe;
 };
 
 const userModel = mongoose.model("User", userSchema);

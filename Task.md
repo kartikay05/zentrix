@@ -12,7 +12,7 @@ This document is for developers to track and manage tasks related to the project
 - [✅] Frontend folder structure setup
 
 ### 2. Backend Development
-- [✅] Create authentication routes (register, login, logout)
+- [✅] Create authentication routes (register, login, logout, get-me)
 - [✅] Implement user model and schema
 - [✅] Configure database connection
 - [✅] Add validation and error handling
@@ -24,7 +24,7 @@ This document is for developers to track and manage tasks related to the project
 - [ ] Add form validation and user feedback
 
 ### 4. Testing
-- [ ] Unit tests for backend APIs
+- [✅] Unit tests for backend APIs
 - [ ] Integration tests for frontend-backend communication
 - [ ] End-to-end testing for user flows
 
@@ -32,6 +32,7 @@ This document is for developers to track and manage tasks related to the project
 
 ## Progress Updates
 - **May 2, 2026**: Initial task breakdown created.
+- **May 2, 2026**: Successfully implemented and tested register, login, logout, and get-me API endpoints.
 
 ---
 
