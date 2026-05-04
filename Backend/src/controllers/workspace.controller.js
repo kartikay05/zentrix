@@ -1,4 +1,5 @@
 import workspaceModel from "../models/workspace.model.js";
+import workspaceMemberModel, { WORKSPACE_ROLES } from "../models/workspaceMember.model.js";
 
 /**
  * Get all workspaces from the database
@@ -80,31 +81,36 @@ export const getWorkspaceById = async (req, res) => {
  */
 export const createWorkspace = async (req, res) => {
     try {
-        const { orgName, projectName, email, githubRepo, description, aiSettings } = req.body;
+        const { orgName, projectName, email, githubRepo, description, aiSettings, slug, industry, teamSize } = req.body;
         const userId = req.userId; // From auth middleware
 
         // Validation
-        if (!orgName || !projectName || !email) {
+        if (!orgName || !industry) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide orgName, projectName, and email"
+                message: "Please provide orgName and industry"
             });
         }
 
-        // Check if email is valid
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide a valid email address"
-            });
+        // Check if slug is available
+        if (slug) {
+            const existingSlug = await workspaceModel.findOne({ slug });
+            if (existingSlug) {
+                return res.status(400).json({
+                    success: false,
+                    message: "A workspace with this slug already exists"
+                });
+            }
         }
 
         // Create workspace
         const workspace = await workspaceModel.create({
             orgName,
-            projectName,
-            email,
+            projectName: projectName || "default",
+            slug,
+            email: email || null,
+            industry,
+            teamSize: teamSize || "just-me",
             githubRepo: githubRepo || null,
             description: description || null,
             createdBy: userId,
@@ -115,10 +121,22 @@ export const createWorkspace = async (req, res) => {
             }
         });
 
+        // Insert into workspace_members
+        await workspaceMemberModel.create({
+            workspaceId: workspace._id,
+            userId: userId,
+            role: WORKSPACE_ROLES.OWNER
+        });
+
         return res.status(201).json({
             success: true,
             message: "Workspace created successfully",
-            data: workspace
+            data: workspace,
+            workspace: {
+                id: workspace._id,
+                name: workspace.orgName,
+                slug: workspace.slug
+            }
         });
 
     } catch (error) {

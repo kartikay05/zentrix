@@ -140,9 +140,10 @@ export default function CreateWorkspace() {
         description: `Industry: ${form.industry}${form.teamSize ? ` · Team: ${form.teamSize}` : ''}`,
       };
 
-      await axios.post('/api/workspace', payload, { withCredentials: true });
+      const response = await axios.post('/api/workspace', payload, { withCredentials: true });
+      const createdWorkspace = response.data.workspace;
       toast.success('Workspace created! Welcome to Zentrix 🚀');
-      navigate('/dashboard');
+      navigate(`/workspace/${createdWorkspace.slug}/projects/new`);
     } catch (err) {
       const msg = err?.response?.data?.message || 'Failed to create workspace';
       toast.error(msg);

@@ -13,10 +13,10 @@ const workspaceSchema = new mongoose.Schema(
 
     projectName: {
       type: String,
-      required: true,
       trim: true,
       minlength: 2,
       maxlength: 150,
+      default: "default",
     },
 
     slug: {
@@ -25,6 +25,7 @@ const workspaceSchema = new mongoose.Schema(
       trim: true,
       unique: true,
       index: true,
+      required: true,
     },
 
     // 🔐 Store hashed API key (not raw)
@@ -35,11 +36,21 @@ const workspaceSchema = new mongoose.Schema(
 
     email: {
       type: String,
-      required: true,
       lowercase: true,
       trim: true,
       index: true,
       match: /^\S+@\S+\.\S+$/,
+      default: null,
+    },
+    industry: {
+      type: String,
+      enum: ["saas", "ecommerce", "fintech", "healthcare", "other"],
+      required: true,
+    },
+    teamSize: {
+      type: String,
+      enum: ["just-me", "2-10", "11-50", "51-200", "200+"],
+      default: "just-me",
     },
 
     githubRepo: {
@@ -111,7 +122,7 @@ function generateSlug(org, project) {
 workspaceSchema.pre("save", async function (next) {
   // 🔹 Generate unique slug
   if (!this.slug) {
-    let baseSlug = generateSlug(this.orgName, this.projectName);
+    let baseSlug = this.slug || generateSlug(this.orgName, this.projectName);
     let slug = baseSlug;
     let counter = 1;
 
@@ -120,6 +131,10 @@ workspaceSchema.pre("save", async function (next) {
     }
 
     this.slug = slug;
+  } else {
+    // If slug is provided but exists, we should let the unique constraint throw an error, 
+    // or we could append a counter. The user prompt says "validate against DB on blur, show Available/Taken",
+    // which implies if they submit a taken slug, it should fail. So we do nothing here and let unique index catch it.
   }
 
   // 🔹 Generate & hash API key
