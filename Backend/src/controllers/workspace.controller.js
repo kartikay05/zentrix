@@ -273,3 +273,33 @@ export const deleteWorkspace = async (req, res) => {
         });
     }
 };
+/**
+ * Check if a workspace slug is available
+ * GET /api/workspace/check-slug?slug=acme-corp
+ */
+export const checkSlugAvailability = async (req, res) => {
+    try {
+        const { slug } = req.query;
+
+        if (!slug) {
+            return res.status(400).json({ success: false, message: "Slug is required" });
+        }
+
+        // Validate slug format
+        const slugRegex = /^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/;
+        if (!slugRegex.test(slug)) {
+            return res.status(200).json({ success: true, available: false, message: "Invalid slug format" });
+        }
+
+        const existing = await workspaceModel.findOne({ slug }).lean();
+
+        return res.status(200).json({
+            success: true,
+            available: !existing,
+            message: existing ? "Slug is already taken" : "Slug is available",
+        });
+    } catch (error) {
+        console.error("Check Slug Error:", error);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};

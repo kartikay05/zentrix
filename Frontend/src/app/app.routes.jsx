@@ -6,6 +6,7 @@ import DashboardHome from "../features/dashboard/pages/DashboardHome";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import LandingPage from "../features/landing/pages/LandingPage";
+import CreateWorkspace from "../features/workspace/pages/CreateWorkspace";
 
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -50,6 +51,15 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <Register />,
+      },
+      {
+        // Protected: only accessible when logged in (after sign-up)
+        path: "create-workspace",
+        element: (
+          <ProtectedRoute>
+            <CreateWorkspace />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

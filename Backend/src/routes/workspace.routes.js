@@ -4,11 +4,15 @@ import {
     getWorkspaceById,
     createWorkspace,
     updateWorkspace,
-    deleteWorkspace
+    deleteWorkspace,
+    checkSlugAvailability
 } from "../controllers/workspace.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 
 const workspaceRouter = Router();
+
+// Public: check slug availability (before isAuthenticated)
+workspaceRouter.get("/check-slug", isAuthenticated, checkSlugAvailability);
 
 // All workspace routes require authentication
 workspaceRouter.use(isAuthenticated);

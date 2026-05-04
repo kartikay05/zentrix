@@ -33,8 +33,8 @@ export default function HeroSection() {
           <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg transition-all shadow-[0_0_30px_rgba(79,70,229,0.4)] hover:shadow-[0_0_40px_rgba(79,70,229,0.6)]">
             Get a Free Trial
           </Link>
-          <Link to="#" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.1] text-white font-bold text-lg transition-all">
-            Get a Demo
+          <Link to="/register" className="w-full sm:w-auto px-8 py-4 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.1] text-white font-bold text-lg transition-all">
+            Create a Workspace
           </Link>
         </div>
 
